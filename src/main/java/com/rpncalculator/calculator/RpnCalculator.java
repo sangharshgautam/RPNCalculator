@@ -4,7 +4,9 @@ import com.rpncalculator.exception.RpnCalculationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Queue;
 import java.util.Stack;
 
 /**
@@ -27,7 +29,7 @@ public class RpnCalculator {
             throw new RpnCalculationException("Expression cannot be null or empty.");
         }
 
-        Stack<Double> operands = new Stack<>();
+        ArrayDeque<Double> operands = new ArrayDeque<>();
         String[] tokens = expression.trim().split("\\s+"); // Split by one or more spaces
 
         logger.debug("Evaluating RPN expression: '{}'", expression);
@@ -36,7 +38,7 @@ public class RpnCalculator {
             try {
                 // First try to parse as a number
                 double value = Double.parseDouble(token);
-                operands.push(value);
+                operands.add(value);
                 logger.debug("Pushed number: {}", value);
             } catch (NumberFormatException e) {
                 // If not a number, it must be an operator
@@ -55,23 +57,7 @@ public class RpnCalculator {
                                     ", but found " + operands.size() + " on stack."
                     );
                 }
-
-                // Pop operands based on the operator's requirement
-                double[] args = new double[operator.getOperandsRequired()];
-                for (int i = operator.getOperandsRequired() - 1; i >= 0; i--) {
-                    args[i] = operands.pop();
-                }
-                logger.debug("Popped operands for {}: {}", operator.getSymbol(), Arrays.toString(args));
-
-                double result;
-                try {
-                    result = operator.apply(args);
-                } catch (RpnCalculationException calcEx) {
-                    throw new RpnCalculationException("Error applying operator '" + operator.getSymbol() + "': " + calcEx.getMessage(), calcEx);
-                }
-
-                operands.push(result);
-                logger.debug("Pushed result: {}", result);
+                extracted(operator, operands);
             }
         }
 
@@ -82,6 +68,27 @@ public class RpnCalculator {
             );
         }
         //Pop the final result
-        return operands.pop();
+        return operands.poll();
+    }
+
+    private static void extracted(ValidOperators operator, ArrayDeque<Double> operands) throws RpnCalculationException {
+        // Pop operands based on the operator's requirement
+        double[] args = new double[operator.getOperandsRequired()];
+        for (int i = 0; i < operator.getOperandsRequired(); i++) {
+            args[i] = operands.poll();
+        }
+        logger.debug("Popped operands for {}: {}", operator.getSymbol(), Arrays.toString(args));
+        double result;
+        try {
+            result = operator.apply(args);
+        } catch (RpnCalculationException calcEx) {
+            throw new RpnCalculationException("Error applying operator '" + operator.getSymbol() + "': " + calcEx.getMessage(), calcEx);
+        }
+
+        operands.addFirst(result);
+        if(operands.size() > 1){
+            extracted(operator, operands);
+        }
+        logger.debug("Pushed result: {}", result);
     }
 }
