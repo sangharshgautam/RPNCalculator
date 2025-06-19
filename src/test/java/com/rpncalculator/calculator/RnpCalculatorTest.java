@@ -2,6 +2,7 @@ package com.rpncalculator.calculator;
 
 import com.rpncalculator.exception.RpnCalculationException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,11 +22,28 @@ class RpnCalculatorTest {
     void testAddition() throws RpnCalculationException {
         assertEquals(5.0, calculator.evaluate("2.0 3.0 +"));
     }
+    @Test
+    @DisplayName("Should correctly evaluate addition for more than two")
+    void testAdditionForMoreThanTwo() throws RpnCalculationException {
+        assertEquals(9.0, calculator.evaluate("2.0 3.0 4.0 +"));
+    }
+
+    @Test
+    @DisplayName("Should correctly evaluate addition for more than Three")
+    void testAdditionForMoreThanThree() throws RpnCalculationException {
+        assertEquals(14.0, calculator.evaluate("2.0 3.0 4.0 5.0 +"));
+    }
 
     @Test
     @DisplayName("Should correctly evaluate multiplication")
     void testMultiplication() throws RpnCalculationException {
         assertEquals(20.0, calculator.evaluate("4 5 *"));
+    }
+
+    @Test
+    @DisplayName("Should correctly evaluate subtraction for more than two")
+    void testSubtractionForMoreThanTwo() throws RpnCalculationException {
+        assertEquals(2.0, calculator.evaluate("10 7 1 -"));
     }
 
     @Test
@@ -121,6 +139,7 @@ class RpnCalculatorTest {
 
     @Test
     @DisplayName("Should throw exception for malformed expression (too many operands)")
+    @Disabled
     void testMalformedExpressionTooManyOperands() {
         RpnCalculationException thrown = assertThrows(RpnCalculationException.class, () -> {
             calculator.evaluate("4 2 6 +");
